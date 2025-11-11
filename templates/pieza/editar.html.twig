@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Pieza{% endblock %}
+
+{% block body %}
+<h1>Editar pieza: {{ pieza.titulo }}</h1>
+
+{{ form_start(formulario) }}
+    {{ form_widget(formulario) }}
+    <button type="submit" class="btn btn-primary mt-3">Actualizar</button>
+{{ form_end(formulario) }}
+
+<a href="{{ path('ficha_pieza', {'id': pieza.id}) }}" class="btn btn-secondary mt-3">Volver</a>
+{% endblock %}

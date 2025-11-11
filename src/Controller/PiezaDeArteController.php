@@ -4,83 +4,126 @@ namespace App\Controller;
 
 use App\Entity\PiezaDeArte;
 use App\Form\PiezaDeArteType;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Prefijo de ruta para todas las acciones de este controlador
- */
-#[Route('/piezas')]
 class PiezaDeArteController extends AbstractController
 {
     /**
-     * ACCIÓN 1: Mostrar una lista de todas las piezas
-     * Esta será como tu página de "índice" de la galería
+     * ACCIÓN 1: Mostrar lista de todas las piezas
      */
-    #[Route('', name: 'lista_piezas')] // Ruta: /piezas
-    public function lista(ManagerRegistry $doctrine): Response
+    #[Route('/', name: 'lista_piezas')]
+    public function lista(EntityManagerInterface $em): Response
     {
-        // 1. Pedir al repositorio todas las piezas
-        $repositorio = $doctrine->getRepository(PiezaDeArte::class);
-        $piezas = $repositorio->findAll();
+        /** @var EntityManagerInterface $em */ // Esta línea no es necesaria, pero es para que no salte error el Inteliphense de VS
+        $piezas = $em->getRepository(PiezaDeArte::class)->findAll();
 
-        // 2. Renderizar la plantilla con las piezas
         return $this->render('pieza/lista.html.twig', [
             'piezas' => $piezas,
         ]);
     }
 
     /**
-     * ACCIÓN 2: Mostrar el formulario para crear una NUEVA pieza
+     * ACCIÓN 2: Crear nueva pieza
      */
-    #[Route('/nuevo', name: 'nueva_pieza')] // Ruta: /pieza/nuevo
-    public function nuevo(ManagerRegistry $doctrine, Request $request): Response 
+    #[Route('/nuevo', name: 'nueva_pieza')]
+    public function nuevo(EntityManagerInterface $em, Request $request): Response
     {
+        /** @var EntityManagerInterface $em */ 
+        /** @var Request $request */ // Esta línea no es necesaria, pero es para que no salte error el Inteliphense de VS
+
         $pieza = new PiezaDeArte();
-        
-        // 1. Crear el formulario (basado en PiezaDeArteType)
-        $formulario = $this->createForm(PiezaDeArteType::class, $pieza); 
+
+        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
         $formulario->handleRequest($request);
 
         if ($formulario->isSubmitted() && $formulario->isValid()) {
-            // 2. Si es válido, guardar en la BBDD
-            $entityManager = $doctrine->getManager();
-            $entityManager->persist($pieza);
-            $entityManager->flush();
-            
-            // 3. Redirigir a la ficha de la pieza recién creada
-            return $this->redirectToRoute('ficha_pieza', ["id" => $pieza->getId()]);
+            $em->persist($pieza);
+            $em->flush();
+
+            return $this->redirectToRoute('ficha_pieza', ['id' => $pieza->getId()]);
         }
-        
-        // 4. Si no se ha enviado (o no es válido), mostrar el formulario
+
         return $this->render('pieza/nuevo.html.twig', [
-            'formulario' => $formulario->createView()
+            'formulario' => $formulario->createView(),
         ]);
     }
 
     /**
-     * ACCIÓN 3: Mostrar la "Ficha" de UNA pieza de arte
-     * (Esta ruta debe ir al final para que no choque con '/nuevo' o '/lista')
+     * ACCIÓN 3: Mostrar ficha de una pieza
      */
-    #[Route('/{id}', name: 'ficha_pieza', requirements: ['id' => '\d+'])] // Ruta: /pieza/1, /pieza/2, etc.
-    public function ficha(ManagerRegistry $doctrine, int $id): Response
+    #[Route('/{id}', name: 'ficha_pieza', requirements: ['id' => '\d+'])]
+    public function ficha(EntityManagerInterface $em, int $id): Response
     {
-        // 1. Buscar la pieza por su ID
-        $repositorio = $doctrine->getRepository(PiezaDeArte::class);
-        $pieza = $repositorio->find($id);
+        /** @var EntityManagerInterface $em */
+        /** @var int $id */ // Esta línea no es necesaria, pero es para que no salte error el Inteliphense de VS
 
-        // 2. Comprobar si existe
+        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
+
         if (!$pieza) {
-            // Lanzar un error 404 si no se encuentra
             throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
         }
 
-        // 3. Renderizar la plantilla
         return $this->render('pieza/ficha.html.twig', [
-            'pieza' => $pieza
+            'pieza' => $pieza,
         ]);
+    }
+
+    /**
+     * ACCIÓN 4: Editar una pieza existente
+     */
+    #[Route('/editar/{id}', name: 'editar_pieza', requirements: ['id' => '\d+'])]
+    public function editar(EntityManagerInterface $em, Request $request, int $id): Response
+    {
+        /** @var EntityManagerInterface $em */
+        /** @var Request $request */
+        /** @var int $id */
+
+        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
+
+        if (!$pieza) {
+            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
+        }
+
+        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
+        $formulario->handleRequest($request);
+
+        if ($formulario->isSubmitted() && $formulario->isValid()) {
+            $em->flush();
+
+            return $this->redirectToRoute('ficha_pieza', ['id' => $pieza->getId()]);
+        }
+
+        return $this->render('pieza/editar.html.twig', [
+            'formulario' => $formulario->createView(),
+            'pieza' => $pieza,
+        ]);
+    }
+
+    /**
+     * BORRAR: Eliminar una pieza
+     */
+    #[Route('/borrar/{id}', name: 'borrar_pieza', requirements: ['id' => '\d+'])]
+    public function borrar(EntityManagerInterface $em, int $id): Response
+    {
+        /** @var EntityManagerInterface $em */
+        /** @var int $id */
+
+
+        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
+
+        if (!$pieza) {
+            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
+        }
+
+        $em->remove($pieza);
+        $em->flush();
+
+        $this->addFlash('success', 'La pieza ha sido eliminada correctamente.');
+
+        return $this->redirectToRoute('lista_piezas');
     }
 }
