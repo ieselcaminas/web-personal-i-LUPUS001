@@ -1,0 +1,43 @@
+{# templates/pieza/lista.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Galería de Piezas de Arte{% endblock %}
+
+{% block body %}
+    <h1>Nuestra Galería de Arte</h1>
+    <p>
+        <a href="{{ path('nueva_pieza') }}" class="btn btn-primary">Añadir Nueva Pieza</a>
+    </p>
+
+    {% if piezas is empty %}
+        <div class="alert alert-warning">
+            No hay piezas de arte registradas todavía. ¡Sé el primero en añadir una!
+        </div>
+    {% else %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Año</th>
+                    <th>Artista</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pieza in piezas %}
+                    <tr>
+                        <td>{{ pieza.id }}</td>
+                        <td>{{ pieza.titulo }}</td>
+                        <td>{{ pieza.anio|default('Desconocido') }}</td>
+                        {# Muestra el nombre del artista, si existe #}
+                        <td>{{ pieza.artista ? pieza.artista.nombre : 'Sin artista' }}</td>
+                        <td>
+                            <a href="{{ path('ficha_pieza', {'id': pieza.id}) }}" class="btn btn-sm btn-info">Ver Ficha</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

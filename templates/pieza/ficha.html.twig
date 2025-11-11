@@ -1,0 +1,30 @@
+{# templates/pieza/ficha.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Ficha de {{ pieza.titulo }}{% endblock %}
+
+{% block body %}
+    <h1>Ficha de la Pieza: **{{ pieza.titulo }}**</h1>
+
+    {% if pieza %}
+        <ul class="list-group">
+            <li class="list-group-item"><strong>ID:</strong> {{ pieza.id }}</li>
+            <li class="list-group-item"><strong>Título:</strong> {{ pieza.titulo }}</li>
+            <li class="list-group-item"><strong>Año:</strong> {{ pieza.anio|default('N/A') }}</li>
+            <li class="list-group-item">
+                <strong>Artista:</strong> 
+                {% if pieza.artista %}
+                    {{ pieza.artista.nombre }} ({{ pieza.artista.nacionalidad }})
+                {% else %}
+                    Sin artista asignado
+                {% endif %}
+            </li>
+        </ul>
+        <br>
+        <a href="{{ path('lista_piezas') }}" class="btn btn-secondary">Volver a la Galería</a>
+    {% else %}
+        <div class="alert alert-danger">
+            Pieza de arte no encontrada.
+        </div>
+    {% endif %}
+{% endblock %}

@@ -9,6 +9,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+
 class PiezaDeArteType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -18,7 +19,8 @@ class PiezaDeArteType extends AbstractType
             ->add('anio')
             ->add('artista', EntityType::class, [
                 'class' => Artista::class,
-                'choice_label' => 'id',
+                'choice_label' => 'nombre',
+                
             ])
         ;
     }
@@ -29,4 +31,21 @@ class PiezaDeArteType extends AbstractType
             'data_class' => PiezaDeArte::class,
         ]);
     }
-}
+} // <-- El archivo DEBE terminar aquí.
+
+//elegir artistas por id
+    /*
+    ->add('artista', EntityType::class, [
+        'class' => Artista::class,
+        'choice_label' => 'id',
+    ])
+    */
+        
+    //elegir artistas por nombre (más amigable para el usuario)
+    /*
+    ->add('artista', EntityType::class, [
+        'class' => Artista::class,
+        'choice_label' => 'nombre',
+        'placeholder' => 'Selecciona un artista',
+    ])
+    */
