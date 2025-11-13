@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ficha de Artista: {{ artista.nombre }}{% endblock %}
+
+{% block body %}
+    <h1>Ficha del Artista: **{{ artista.nombre }}**</h1>
+
+    <ul class="list-group">
+        <li class="list-group-item"><strong>ID:</strong> {{ artista.id }}</li>
+        <li class="list-group-item"><strong>Nacionalidad:</strong> {{ artista.nacionalidad }}</li>
+        <li class="list-group-item"><strong>Movimiento:</strong> {{ artista.movimiento }}</li>
+        {# Puedes añadir más propiedades de la entidad Artista aquí #}
+    </ul>
+    
+    <div class="mt-4">
+        <a href="{{ path('lista_artistas') }}" class="btn btn-secondary">Volver a la Lista</a>
+        <a href="{{ path('editar_artista', {'id': artista.id}) }}" class="btn btn-warning">Editar Artista</a>
+    </div>
+    
+{% endblock %}

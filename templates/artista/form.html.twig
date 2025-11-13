@@ -1,0 +1,31 @@
+{# templates/artista/form.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% set es_edicion = es_edicion is defined and es_edicion %}
+{% set page_title = es_edicion ? 'Editar Artista' : 'Crear Nuevo Artista' %}
+{% set button_text = es_edicion ? 'Actualizar Artista' : 'Guardar Artista' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block body %}
+    <h1>{{ page_title }}</h1>
+
+    {{ form_start(formulario) }}
+        {# Renderiza todos los campos visibles del formulario #}
+        {{ form_widget(formulario) }} 
+        
+        {# AÑADIR BOTÓN DE SUBMIT MANUALMENTE #}
+        <button type="submit" class="btn {{ es_edicion ? 'btn-warning' : 'btn-success' }} mt-3">
+            {{ button_text }}
+        </button>
+
+    {{ form_end(formulario) }}
+
+    {# Enlaces de navegación #}
+    {% if es_edicion %}
+        <a href="{{ path('ficha_artista', {'id': artista_id}) }}" class="btn btn-secondary mt-3">Cancelar y ver ficha</a>
+    {% else %}
+        <a href="{{ path('lista_artistas') }}" class="btn btn-secondary mt-3">Volver a la Lista</a>
+    {% endif %}
+    
+{% endblock %}

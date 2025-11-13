@@ -22,9 +22,14 @@
         </ul>
         <br>
         <a href="{{ path('lista_piezas') }}" class="btn btn-secondary">Volver a la Galería</a>
-    {% else %}
+
+        <a href="{{ path('editar_pieza', {'id': pieza.id}) }}" class="btn btn-warning">
+            Editar Pieza
+        </a>
+    {# {% else %} YA NO HACE FALTA EL ELSE PORQUE EL CONTROLADOR YA MANEJA EL ERROR 404
         <div class="alert alert-danger">
             Pieza de arte no encontrada.
-        </div>
+        </div> #}
     {% endif %}
+    
 {% endblock %}

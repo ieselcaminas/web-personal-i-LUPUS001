@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lista de Artistas{% endblock %}
+
+{% block body %}
+    <h1>Artistas Registrados</h1>
+    <p>
+        <a href="{{ path('nuevo_artista') }}" class="btn btn-primary">Añadir Nuevo Artista</a>
+    </p>
+
+    {% if artistas is empty %}
+        <div class="alert alert-info">
+            No hay artistas registrados todavía.
+        </div>
+    {% else %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Nacionalidad</th>
+                    <th>Movimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for artista in artistas %}
+                    <tr>
+                        <td>{{ artista.id }}</td>
+                        <td>{{ artista.nombre }}</td>
+                        <td>{{ artista.nacionalidad }}</td>
+                        <td>{{ artista.movimiento }}</td>
+                        <td>
+                            <a href="{{ path('ficha_artista', {'id': artista.id}) }}" class="btn btn-sm btn-info">Ver Ficha</a>
+                            <a href="{{ path('editar_artista', {'id': artista.id}) }}" class="btn btn-sm btn-warning">Editar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
