@@ -9,114 +9,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-//Ctrl + Shift + P --> escribir = index workspace (esto elimina el error de VS y hace que ya no nos haga falta crear variables extras para que no de error)
+// Añado un prefijo de ruta para que no se mezcle con la home o artistas
 class PiezaDeArteController extends AbstractController
 {
     /**
-     * ACCIÓN 2: Crear nueva pieza
-     */
-    #[Route('/nuevo', name: 'nueva_pieza')]
-    public function nuevo(EntityManagerInterface $em, Request $request): Response
-    {
-
-        $pieza = new PiezaDeArte();
-
-        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
-        $formulario->handleRequest($request);
-
-        if ($formulario->isSubmitted() && $formulario->isValid()) {
-            $em->persist($pieza);
-            $em->flush();
-
-            return $this->redirectToRoute('ficha_pieza', ['id' => $pieza->getId()]);
-        }
-
-        return $this->render('pieza/form.html.twig', [ //Para no tener 3 archivos casi identicos, los metemos todos en uno solo 
-            'formulario' => $formulario->createView(),
-        ]);
-    }
-
-    /**
-     * ACCIÓN 3: Mostrar ficha de una pieza
-     */
-    #[Route('/{id}', name: 'ficha_pieza', requirements: ['id' => '\d+'])]
-    public function ficha(EntityManagerInterface $em, int $id): Response
-    {
-        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
-
-        if (!$pieza) {
-            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
-        }
-
-        return $this->render('pieza/ficha.html.twig', [
-            'pieza' => $pieza,
-        ]);
-    }
-
-    /**
-     * ACCIÓN 4: Editar una pieza existente
-     */
-    #[Route('/editar/{id}', name: 'editar_pieza', requirements: ['id' => '\d+'])]
-    public function editar(EntityManagerInterface $em, Request $request, int $id): Response
-    {
-        // 1. Buscar la pieza de arte existente por su ID
-        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
-
-        // Si la pieza no existe, redirigir o mostrar un error 404
-        if (!$pieza) {
-            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
-        }
-
-        // 2. Crear el formulario, precargado con los datos de $pieza
-        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
-
-        // 3. Manejar la solicitud y la validación
-        $formulario->handleRequest($request);
-
-        if ($formulario->isSubmitted() && $formulario->isValid()) {
-            $em->flush();
-            
-            // Mensaje Flash de éxito
-            $this->addFlash(
-                'success',
-                '¡La pieza de arte "' . $pieza->getTitulo() . '" ha sido modificada con éxito!'
-            );
-            
-            // Redirigir a la ficha de la pieza editada
-            return $this->redirectToRoute('ficha_pieza', ['id' => $pieza->getId()]);
-        }
-
-        // 4. Renderizar la plantilla con el formulario cargado
-        return $this->render('pieza/form.html.twig', [ //al igual que en nuevo, lo ponemos en form para unificarlo todo
-            'formulario' => $formulario->createView(),
-            'es_edicion' => true, // Indicador para cambiar el título en la plantilla
-            'pieza_id' => $id,
-        ]);
-    }
-
-    /**
-     * BORRAR: Eliminar una pieza
-     */
-    #[Route('/borrar/{id}', name: 'borrar_pieza', requirements: ['id' => '\d+'])]
-    public function borrar(EntityManagerInterface $em, int $id): Response
-    {
-        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
-
-        if (!$pieza) {
-            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
-        }
-
-        $em->remove($pieza);
-        $em->flush();
-
-        $this->addFlash('success', 'La pieza ha sido eliminada correctamente.');
-
-        return $this->redirectToRoute('lista_piezas');
-    }
-
-    /**
-     * ACCIÓN 1: Mostrar lista de todas las piezas
+     * ACCIÓN 1: Lista de piezas (Portada de esta sección)
      */
     #[Route('/', name: 'lista_piezas')]
     public function lista(EntityManagerInterface $em): Response
@@ -125,6 +24,113 @@ class PiezaDeArteController extends AbstractController
 
         return $this->render('pieza/lista.html.twig', [
             'piezas' => $piezas,
+        ]);
+    }
+
+    /**
+     * ACCIÓN 2: Crear nueva pieza (Con seguridad y botón manual)
+     */
+    #[Route('/nuevo', name: 'nueva_pieza')]
+    public function nuevo(EntityManagerInterface $em, Request $request): Response
+    {
+        // 1. Seguridad (Requisito del Reto)
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $pieza = new PiezaDeArte();
+        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
+        
+        // Botón manual
+        $formulario->add('save', SubmitType::class, ['label' => 'Insertar Pieza']);
+
+        $formulario->handleRequest($request);
+
+        if ($formulario->isSubmitted() && $formulario->isValid()) {
+            $em->persist($pieza);
+            $em->flush();
+
+            $this->addFlash('success', 'Pieza creada correctamente');
+            return $this->redirectToRoute('lista_piezas');
+        }
+
+        return $this->render('pieza/form.html.twig', [
+            'formulario' => $formulario->createView(),
+            'es_edicion' => false
+        ]);
+    }
+
+    /**
+     * ACCIÓN 3: Editar y Borrar (El núcleo del Reto 2)
+     */
+    #[Route('/editar/{id}', name: 'editar_pieza', requirements: ['id' => '\d+'])]
+    public function editar(EntityManagerInterface $em, Request $request, int $id): Response
+    {
+        // 1. Seguridad
+        if (!$this->getUser()) {
+            return $this->redirect('/index');
+        }
+
+        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
+
+        if (!$pieza) {
+            throw $this->createNotFoundException('No se ha encontrado la pieza con ID: ' . $id);
+        }
+
+        $formulario = $this->createForm(PiezaDeArteType::class, $pieza);
+
+        // 2. Botones Dinámicos (Guardar y Borrar)
+        $formulario->add('save', SubmitType::class, [
+            'label' => 'Guardar Cambios', 
+            'attr' => ['class' => 'btn btn-primary']
+        ]);
+        
+        $formulario->add('delete', SubmitType::class, [
+            'label' => 'Borrar Pieza', 
+            'attr' => ['class' => 'btn btn-danger', 'onclick' => 'return confirm("¿Seguro que quieres eliminar esta obra?")']
+        ]);
+
+        $formulario->handleRequest($request);
+
+        if ($formulario->isSubmitted() && $formulario->isValid()) {
+            
+            // 3. Lógica de isClicked()
+            if ($formulario->get('save')->isClicked()) {
+                // GUARDAR
+                $em->flush();
+                $this->addFlash('success', 'Pieza modificada con éxito');
+                return $this->redirectToRoute('lista_piezas');
+
+            } elseif ($formulario->get('delete')->isClicked()) {
+                // BORRAR
+                $em->remove($pieza);
+                $em->flush();
+                $this->addFlash('warning', 'Pieza eliminada correctamente');
+                return $this->redirectToRoute('lista_piezas');
+            }
+        }
+
+        return $this->render('pieza/form.html.twig', [
+            'formulario' => $formulario->createView(),
+            'es_edicion' => true,
+            'pieza' => $pieza, // Pasamos el objeto para evitar el error de variable inexistente
+        ]);
+    }
+
+    /**
+     * ACCIÓN 4: Ficha individual 
+     */
+    #[Route('/{id}', name: 'ficha_pieza', requirements: ['id' => '\d+'])]
+    public function ficha(EntityManagerInterface $em, int $id): Response
+    {
+        $pieza = $em->getRepository(PiezaDeArte::class)->find($id);
+
+        if (!$pieza) {
+            throw $this->createNotFoundException('No encontrada');
+        }
+
+        return $this->render('pieza/ficha.html.twig', [
+            'pieza' => $pieza,
         ]);
     }
 }

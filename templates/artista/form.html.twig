@@ -1,9 +1,9 @@
 {# templates/artista/form.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% set es_edicion = es_edicion is defined and es_edicion %}
-{% set page_title = es_edicion ? 'Editar Artista' : 'Crear Nuevo Artista' %}
-{% set button_text = es_edicion ? 'Actualizar Artista' : 'Guardar Artista' %}
+{% set es_edicion = es_edicion is defined and es_edicion %} {# Definimos es_edicion de forma segura #}
+{% set page_title = es_edicion ? 'Editar Artista' : 'Crear Nuevo Artista' %} {# Definimos el título #}
+{% set button_text = es_edicion ? 'Actualizar Artista' : 'Guardar Artista' %} {# Aquí definimos el texto del botón #}
 
 {% block title %}{{ page_title }}{% endblock %}
 
@@ -23,7 +23,7 @@
 
     {# Enlaces de navegación #}
     {% if es_edicion %}
-        <a href="{{ path('ficha_artista', {'id': artista_id}) }}" class="btn btn-secondary mt-3">Cancelar y ver ficha</a>
+        <a href="{{ path('ficha_artista', {'id': artista.id}) }}" class="btn btn-secondary mt-3">Cancelar y ver ficha</a>
     {% else %}
         <a href="{{ path('lista_artistas') }}" class="btn btn-secondary mt-3">Volver a la Lista</a>
     {% endif %}

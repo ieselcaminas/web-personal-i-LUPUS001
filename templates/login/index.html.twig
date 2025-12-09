@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0 text-center">Bienvenido</h3>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="post">
+                        {% if error %}
+                            <div class="alert alert-danger">
+                                {{ error.messageKey|trans(error.messageData, 'security') }}
+                            </div>
+                        {% endif %}
+
+                        {% if app.user %}
+                            <div class="mb-3">
+                                Estás conectado como {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Salir</a>
+                            </div>
+                        {% endif %}
+
+                        <h1 class="h5 mb-3 font-weight-normal text-center text-muted">Por favor, identifícate</h1>
+
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label">Email</label>
+                            {# CAMBIO IMPORTANTE AQUÍ: name="_username" #}
+                            <input type="email" value="{{ last_username }}" name="_username" id="inputEmail" class="form-control" autocomplete="email" required autofocus placeholder="tu@email.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputPassword" class="form-label">Contraseña</label>
+                            {# CAMBIO IMPORTANTE AQUÍ: name="_password" #}
+                            <input type="password" name="_password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-lg btn-primary" type="submit">
+                                Entrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

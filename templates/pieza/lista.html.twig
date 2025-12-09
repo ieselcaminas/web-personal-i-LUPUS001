@@ -30,10 +30,16 @@
                         <td>{{ pieza.id }}</td>
                         <td>{{ pieza.titulo }}</td>
                         <td>{{ pieza.anio|default('Desconocido') }}</td>
+                        
                         {# Muestra el nombre del artista, si existe #}
                         <td>{{ pieza.artista ? pieza.artista.nombre : 'Sin artista' }}</td>
+                        
                         <td>
+                            {# Botón Ver Ficha #}
                             <a href="{{ path('ficha_pieza', {'id': pieza.id}) }}" class="btn btn-sm btn-info">Ver Ficha</a>
+                            
+                            {# --- AÑADIDO: Botón Editar (Para cumplir mejor el requisito de modificar) --- #}
+                            <a href="{{ path('editar_pieza', {'id': pieza.id}) }}" class="btn btn-sm btn-warning">Editar</a>
                         </td>
                     </tr>
                 {% endfor %}

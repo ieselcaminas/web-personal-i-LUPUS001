@@ -1,23 +1,28 @@
 {# templates/pieza/form.html.twig #}
 {% extends 'base.html.twig' %}
 
-{# Usa el indicador para definir el título y el encabezado #}
-{% set page_title = es_edicion is defined and es_edicion ? 'Editar Pieza' : 'Crear Nueva Pieza' %}
+{% set es_edicion = es_edicion is defined and es_edicion %}
+{% set page_title = es_edicion ? 'Editar Pieza' : 'Crear Nueva Pieza' %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block body %}
-    <h1>{{ page_title }}</h1>
+    <div class="container mt-4">
+        <h1>{{ page_title }}</h1>
 
-    {# Renderizado simple del formulario #}
-    {{ form(formulario) }}
-    
-    {# Si estás editando, proporciona un enlace de cancelación #}
-    {% if es_edicion is defined and es_edicion %}
-        <a href="{{ path('ficha_pieza', {'id': pieza_id}) }}" class="btn btn-secondary mt-3">Cancelar y volver a la ficha</a>
-    {% else %}
-        {# Si es nueva pieza, un enlace de vuelta a la lista #}
-        <a href="{{ path('lista_piezas') }}" class="btn btn-secondary mt-3">Volver a la Galería</a>
-    {% endif %}
-    
+        <div class="card p-4 bg-light shadow-sm">
+            {{ form_start(formulario) }}
+                {{ form_widget(formulario) }}
+                {# Los botones se renderizan aquí automáticamente #}
+            {{ form_end(formulario) }}
+        </div>
+
+        <div class="mt-3">
+            {% if es_edicion %}
+                <a href="{{ path('ficha_pieza', {'id': pieza.id}) }}" class="btn btn-secondary">Cancelar</a>
+            {% else %}
+                <a href="{{ path('lista_piezas') }}" class="btn btn-secondary">Volver al listado</a>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
